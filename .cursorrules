@@ -3,7 +3,7 @@
 - Recreate / operate from `docs/RUNBOOK.md`.
 - Log sessions in `docs/PROGRESS.md`. App facts in `docs/settings/`.
 - GitHub: https://github.com/ixamal/stems — docs + `py/` helpers. Never commit audio, stems, NML, TSI, master.db, or `m3u/*.m3u`.
-- Git authorship: David alone. No `Co-authored-by: Cursor`, `Made-with: Cursor`, or any Cursor trailer.
+- Git authorship: David alone. No `Co-authored-by: Cursor`, `Co-authored-by: Codex`, `Made-with: Cursor`, or any agent trailer. We vibe-code in Cursor and Codex only.
 - Do not change Traktor / NUO-STEMS / Audio MIDI Setup without a documented rollback.
 
 # Rig

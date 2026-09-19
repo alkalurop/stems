@@ -2,6 +2,8 @@
 
 David’s STEM shop on `ix` for a **35k+** library. [ixamal](https://github.com/ixamal) / [alkalurops.org](https://www.alkalurops.org).
 
+**Vibe coding.** Cursor and Codex only. Git commits are David — no Cursor or Codex co-author trailers.
+
 Grab tracks → `python3 -m py.exec.separate` → `{name}.stem.m4a` next to the MP3 (plus Rekordbox vocals/instrumental when there is voice). Same machine as Traktor. Audio stays on disk. Apple Music stays in its own tree. Tried and parked ideas live in the docs — this is the shop log, not only the tools that stuck.
 
 **Inspiration.** [NUO-STEMS](https://nuo-stems.com) by Alex (DJ NUO) is licensed here and is the functional reference — recommended split `mel_vocals_bs_others`, sibling NI STEM files, Rekordbox pair. Those algorithms and functions made this possible. NUO has no CLI and does not ingest `.m3u`; a GUI does not batch tens of thousands of tracks. **Generator:** local Mel + BS-RoFormer CLI. NUO stays for comparison (**Legacy / Export**, Same as Original). Native is parked.
