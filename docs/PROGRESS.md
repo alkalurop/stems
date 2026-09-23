@@ -276,3 +276,11 @@ First playlist — `Never Forget 50th v01`, **21 tracks**: `ok 42/42`, **0 fail*
 ## 2026-09-23 — HUD shows an ETA
 
 `ProgressPanel` now prints `ETA N.N min` next to elapsed time once the first job has finished. It is elapsed so far divided by jobs done, times jobs left. The bar still closes only when the batch ends. No change to separation, mux, or the pair-drop rules.
+
+---
+
+## 2026-09-23 — Fadr parked
+
+[Fadr](https://fadr.com) is a cool hosted stemmer: vocals, drums, bass, melodies, instrumental, plus MIDI, chords, key, and tempo. The models stay on their platform. Files go to their storage. That is a black box next to this factory.
+
+They do publish an HTTP API ([docs](https://fadr.com/docs/api)): Bearer key, Fadr Plus, upload through a presigned URL, then `POST /assets/analyze/stem`. Create Stem Task is US$0.05 per audio minute. There is no local CLI and no weights to run beside `py.exec.separate`. David: curb the discussion for now. Generator stays local Mel + BS-RoFormer.
