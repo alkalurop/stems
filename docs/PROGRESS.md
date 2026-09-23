@@ -4,6 +4,12 @@ Session notes. I direct. Agent lifts. We write it down.
 
 ---
 
+## 2026-09-23 — Tracker on ixamal
+
+Open queue: [milestone STEMIT factory](https://github.com/ixamal/stems/milestone/1), issue [#1](https://github.com/ixamal/stems/issues/1). Day-to-day tracker and Floor live on [ixamal/ix](https://github.com/ixamal/ix) (`docs/tracker.md`). Alkalurop mirrors git docs only. Fadr stays parked. FairPlay `drms` skips in the ix `stemit` driver.
+
+---
+
 ## 2026-08-22 — Repo stood up
 
 Left blackhole parked (`a2ad27e`). New house for stems.
