@@ -270,3 +270,9 @@ First playlist — `Never Forget 50th v01`, **21 tracks**: `ok 42/42`, **0 fail*
 **Fix in this repo:** `_audio_separator_bin` now checks for `audio-separator` **next to `sys.executable`** before falling back to `shutil.which`. A caller that launches `.venv/bin/python -m py.exec.separate` without the RUNBOOK's `export PATH="$PWD/.venv/bin:$PATH"` used to fail every track with *audio-separator not on PATH*, even though the binary was sitting in that same venv. First STEMIT attempt died that way at 1/42. Crate also prepends the venv `bin` now, so both sides are covered.
 
 **Note for the next run:** the shell can look like it ran 8 hours. That is the Aqua HUD waiting on **Close**. Real time is `summary.wall_s_total` in the run JSON.
+
+---
+
+## 2026-09-23 — HUD shows an ETA
+
+`ProgressPanel` now prints `ETA N.N min` next to elapsed time once the first job has finished. It is elapsed so far divided by jobs done, times jobs left. The bar still closes only when the batch ends. No change to separation, mux, or the pair-drop rules.

@@ -40,6 +40,7 @@ class ProgressPanel:
         self._done = False
         self._n_jobs = 1
         self._n_tracks = 1
+        self._job_index = 0
         self.root = tk.Tk()
         self.root.title(title)
         self.root.update_idletasks()
@@ -140,6 +141,7 @@ class ProgressPanel:
                     self._n_tracks, self._n_jobs = payload
                 elif kind == "job":
                     index, total, name, action = payload
+                    self._job_index = max(index, 0)
                     self._n_jobs = max(total, 1)
                     pct = min(100.0, 100.0 * index / self._n_jobs)
                     self._bar["value"] = pct
@@ -162,8 +164,13 @@ class ProgressPanel:
         except queue.Empty:
             pass
         elapsed = time.perf_counter() - self._t0
+        eta_bit = ""
+        if not self._done and self._job_index > 0:
+            remaining = max(self._n_jobs - self._job_index, 0)
+            eta_min = (elapsed / self._job_index) * remaining / 60
+            eta_bit = f"   ETA {eta_min:.1f} min"
         self._meta.set(
-            f"elapsed {elapsed / 60:.1f} min   "
+            f"elapsed {elapsed / 60:.1f} min{eta_bit}   "
             f"{self._n_tracks} tracks   "
             + ("done — charts below, Close when you are finished looking" if self._done else "running — Close enables when the batch ends")
         )
