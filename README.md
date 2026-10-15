@@ -1,8 +1,8 @@
 # stems
 
-**If you DJ:** this is the local stem factory — vocal/instrumental pairs for Rekordbox and a Traktor `.stem.m4a` for four-deck play, batchable on your Mac without shipping files to a cloud service. It started as a NUO-STEMS–style workflow for a **35k+** library where GUI tools stop after a handful of tracks.
+Local stem factory. Queue tracks on your Mac → Rekordbox vocal/instrumental files + a Traktor `.stem.m4a` next to the mix. No upload step. Built for a **35k+** library where GUIs tap out after a dozen songs.
 
-David’s STEM shop on `ix` for a **35k+** library. [ixamal](https://github.com/ixamal) / [alkalurops.org](https://www.alkalurops.org).
+[NUO-STEMS](https://nuo-stems.com) is the reference split; this is the batch CLI that pairs with [ixamal/ix](https://github.com/ixamal/ix) **STEMIT**. [ixamal](https://github.com/ixamal) · [alkalurops.org](https://www.alkalurops.org)
 
 **Vibe coding.** Cursor and Codex only. Git commits are David — no Cursor or Codex co-author trailers.
 
