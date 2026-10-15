@@ -41,6 +41,9 @@ class ProgressPanel:
         self._n_jobs = 1
         self._n_tracks = 1
         self._job_index = 0
+        self._phase_names: list[str] = []
+        self._phase_labels: list[ttk.Label] = []
+        self._phase_states: list[str] = []
         self.root = tk.Tk()
         self.root.title(title)
         self.root.update_idletasks()
@@ -57,6 +60,9 @@ class ProgressPanel:
             anchor="w", **pad
         )
         ttk.Label(self.root, textvariable=self._meta).pack(anchor="w", **pad)
+
+        self._phase_frame = ttk.Frame(self.root)
+        self._phase_frame.pack(fill="x", padx=12, pady=(0, 4))
 
         self._bar = ttk.Progressbar(
             self.root, mode="determinate", maximum=100, length=720
@@ -108,6 +114,14 @@ class ProgressPanel:
     def set_job(self, index: int, total: int, name: str, action: str) -> None:
         self._q.put(("job", (index, total, name, action)))
 
+    def set_phase_plan(self, names: list[str]) -> None:
+        """Macro steps (e.g. BABYLON hygiene → STEMIT → CRATER)."""
+        self._q.put(("phases", list(names)))
+
+    def set_phase_state(self, index: int, state: str) -> None:
+        """``pending`` | ``running`` | ``done`` | ``fail`` (1-based index)."""
+        self._q.put(("phase_state", (index, state)))
+
     def write(self, data: str) -> None:
         if data:
             self._q.put(("log", data))
@@ -139,6 +153,11 @@ class ProgressPanel:
                 kind, payload = self._q.get_nowait()
                 if kind == "totals":
                     self._n_tracks, self._n_jobs = payload
+                elif kind == "phases":
+                    self._build_phase_rail(list(payload))
+                elif kind == "phase_state":
+                    idx, state = payload
+                    self._apply_phase_state(int(idx), str(state))
                 elif kind == "job":
                     index, total, name, action = payload
                     self._job_index = max(index, 0)
@@ -222,6 +241,45 @@ class ProgressPanel:
             return photo
         except Exception:
             return None
+
+    def _build_phase_rail(self, names: list[str]) -> None:
+        for child in self._phase_frame.winfo_children():
+            child.destroy()
+        self._phase_names = names
+        self._phase_labels = []
+        self._phase_states = ["pending"] * len(names)
+        if not names:
+            return
+        cols = min(len(names), 4)
+        for i, name in enumerate(names, start=1):
+            row, col = divmod(i - 1, cols)
+            text = self._phase_label_text(i, name, "pending")
+            lbl = ttk.Label(
+                self._phase_frame,
+                text=text,
+                font=("Helvetica", 10),
+                wraplength=max(280, int(self.root.winfo_screenwidth()) // cols - 24),
+            )
+            lbl.grid(row=row, column=col, sticky="w", padx=4, pady=1)
+            self._phase_labels.append(lbl)
+
+    def _phase_label_text(self, index: int, name: str, state: str) -> str:
+        mark = {"pending": "○", "running": "▶", "done": "✓", "fail": "✗"}.get(
+            state, "○"
+        )
+        return f"{mark} {index}/{len(self._phase_names)}  {name}"
+
+    def _apply_phase_state(self, index: int, state: str) -> None:
+        if index < 1 or index > len(self._phase_labels):
+            return
+        self._phase_states[index - 1] = state
+        name = self._phase_names[index - 1]
+        self._phase_labels[index - 1].configure(
+            text=self._phase_label_text(index, name, state)
+        )
+        if state == "running" and not self._done:
+            pct = min(100.0, 100.0 * (index - 1) / max(len(self._phase_names), 1))
+            self._bar["value"] = pct
 
     def _append(self, data: str) -> None:
         """Mirror stdout. Carriage returns (tqdm) redraw the current line."""
