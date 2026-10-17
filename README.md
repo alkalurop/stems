@@ -6,7 +6,7 @@ Local stem factory. Queue tracks on your Mac → Rekordbox vocal/instrumental fi
 
 Grab tracks → `python3 -m py.exec.separate` → `{name}.stem.m4a` next to the MP3 (plus Rekordbox vocals/instrumental when there is voice). Same machine as Traktor. Audio stays on disk. Apple Music stays in its own tree. Tried and parked ideas live in the docs — this is the shop log, not only the tools that stuck.
 
-`mel_vocals_bs_others` generates parallel NI STEM files with Rekordbox pairing. Those algorithms and functions made this possible. NUO has no CLI and does not ingest `.m3u`; a GUI does not batch tens of thousands of tracks. **Generator:** local Mel + BS-RoFormer CLI. NUO Stems for comparison.
+`mel_vocals_bs_others` generates parallel NI STEM files with Rekordbox pairing. **Generator:** local Mel + BS-RoFormer CLI.
 
 We also take a look from [Fadr](https://fadr.com) to host a black box with an HTTP API and no local CLI (`docs/PROGRESS.md`).
 
