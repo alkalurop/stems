@@ -2,13 +2,13 @@
 
 Local stem factory. Queue tracks on your Mac → Rekordbox vocal/instrumental files + a Traktor `.stem.m4a` next to the mix. No upload step. Built for a **35k+** library where GUIs tap out after a dozen songs.
 
-[NUO-STEMS](https://nuo-stems.com) is the reference split; this is the batch CLI that pairs with [ixamal/ix](https://github.com/ixamal/ix) **STEMIT**. [ixamal](https://github.com/ixamal) · [alkalurops.org](https://www.alkalurops.org)
-
-**Vibe coding.** Cursor and Codex only. Git commits are David — no Cursor or Codex co-author trailers.
+[NUO-STEMS](https://nuo-stems.com) is the inspirational piece. Derived from the underlying algorithms leveraging GPU we batch CLI crates of music at a time [ixamal/ix](https://github.com/ixamal/ix) **STEMIT**. [ixamal](https://github.com/ixamal) · [alkalurops.org](https://www.alkalurops.org)
 
 Grab tracks → `python3 -m py.exec.separate` → `{name}.stem.m4a` next to the MP3 (plus Rekordbox vocals/instrumental when there is voice). Same machine as Traktor. Audio stays on disk. Apple Music stays in its own tree. Tried and parked ideas live in the docs — this is the shop log, not only the tools that stuck.
 
-**Inspiration.** [NUO-STEMS](https://nuo-stems.com) by Alex (DJ NUO) is licensed here and is the functional reference — recommended split `mel_vocals_bs_others`, sibling NI STEM files, Rekordbox pair. Those algorithms and functions made this possible. NUO has no CLI and does not ingest `.m3u`; a GUI does not batch tens of thousands of tracks. **Generator:** local Mel + BS-RoFormer CLI. NUO stays for comparison (**Legacy / Export**, Same as Original). Native is parked. [Fadr](https://fadr.com) is a hosted black box with an HTTP API and no local CLI; parked 2026-09-23 (`docs/PROGRESS.md`).
+`mel_vocals_bs_others` generates parallel NI STEM files with Rekordbox pairing. Those algorithms and functions made this possible. NUO has no CLI and does not ingest `.m3u`; a GUI does not batch tens of thousands of tracks. **Generator:** local Mel + BS-RoFormer CLI. NUO Stems for comparison.
+
+We also take a look from [Fadr](https://fadr.com) to host a black box with an HTTP API and no local CLI (`docs/PROGRESS.md`).
 
 ## `py/` tools
 
