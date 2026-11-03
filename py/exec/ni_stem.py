@@ -14,7 +14,10 @@ import base64
 import json
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
+
+from py.utils.ffmpeg import FFmpegError, run_ffmpeg
 
 class StemMuxError(RuntimeError):
     pass
@@ -67,6 +70,15 @@ def mp4box_bin() -> str:
     return path
 
 
+def audio_only(src: Path, dest: Path) -> Path:
+    """First audio stream, stream-copied. MP4Box refuses inputs with cover art."""
+    try:
+        run_ffmpeg(["-i", str(src), "-map", "0:a:0", "-c", "copy", str(dest)])
+    except FFmpegError as exc:
+        raise StemMuxError(f"audio-only copy failed for {src.name}: {exc}") from exc
+    return dest
+
+
 def mux_ni_stem(
     dest: Path,
     *,
@@ -86,6 +98,27 @@ def mux_ni_stem(
     ):
         if not path.is_file() or path.stat().st_size == 0:
             raise StemMuxError(f"missing {role} AAC: {path}")
+    with tempfile.TemporaryDirectory(prefix="stems-mux-") as tmp:
+        tmp_path = Path(tmp)
+        _mux(
+            dest,
+            master=audio_only(master, tmp_path / "master.m4a"),
+            drums=audio_only(drums, tmp_path / "drums.m4a"),
+            bass=audio_only(bass, tmp_path / "bass.m4a"),
+            other=audio_only(other, tmp_path / "other.m4a"),
+            vocals=audio_only(vocals, tmp_path / "vocals.m4a"),
+        )
+
+
+def _mux(
+    dest: Path,
+    *,
+    master: Path,
+    drums: Path,
+    bass: Path,
+    other: Path,
+    vocals: Path,
+) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     if dest.exists():
         dest.unlink()

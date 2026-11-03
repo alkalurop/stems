@@ -48,11 +48,13 @@ from pathlib import Path
 from py.utils.base import Job, Tool
 from py.utils.catalog import is_generated_role_file
 from py.utils.ffmpeg import (
+    FFmpegError,
     audio_duration,
     encode_aac,
     encode_silence_aac,
     is_insignificant_audio,
     is_vocal_only_pair,
+    run_ffmpeg,
 )
 from py.exec.ni_stem import mux_ni_stem
 from py.utils.paths import (
@@ -427,10 +429,33 @@ class LocalSeparator(Tool):
             json.dumps(names),
         ]
         completed = subprocess.run(cmd, check=False)
-        if completed.returncode != 0:
-            raise SeparatorError(
-                f"audio-separator failed ({completed.returncode}) for {source.name}"
+        if completed.returncode == 0:
+            return
+        if not str(source).startswith(str(tmp_path)):
+            wav = self._decoded_wav(source, tmp_path)
+            if wav is not None:
+                self._run_audio_separator(wav, tmp_path, model, names)
+                return
+        raise SeparatorError(
+            f"audio-separator failed ({completed.returncode}) for {source.name}"
+        )
+
+    def _decoded_wav(self, source: Path, tmp_path: Path) -> Path | None:
+        """ffmpeg skips damaged AAC/MP3 frames that Core Audio refuses to read."""
+        out_dir = tmp_path / "decoded"
+        out_dir.mkdir(exist_ok=True)
+        wav = out_dir / f"{source.stem}.wav"
+        try:
+            run_ffmpeg(
+                ["-err_detect", "ignore_err", "-i", str(source), "-map", "0:a:0", "-vn",
+                 "-c:a", "pcm_s24le", str(wav)]
             )
+        except FFmpegError:
+            return None
+        if not wav.is_file() or wav.stat().st_size == 0:
+            return None
+        print(f"decode retry: {source.name} via ffmpeg wav (damaged frames skipped)", flush=True)
+        return wav
 
     def _separate_one(self, job: Job) -> Path | None:
         dest_v = job.dest
@@ -513,10 +538,16 @@ class LocalSeparator(Tool):
             str(out_dir),
         ]
         completed = subprocess.run(cmd, check=False)
+        if completed.returncode == 0 and not any(out_dir.glob("*_vocals.wav")):
+            wav = self._decoded_wav(source, tmp_path)
+            if wav is not None:
+                work.unlink(missing_ok=True)
+                shutil.move(str(wav), str(in_dir / wav.name))
+                completed = subprocess.run(cmd, check=False)
         if completed.returncode != 0:
             raise SeparatorError(
-                f"bs_roformer failed ({completed.returncode}) for {source.name}. "
-                "Install: pip install -r py/exec/requirements.txt"
+                f"bs_roformer failed ({completed.returncode}) for {source.name}"
+                + (" (killed, likely out of memory)" if completed.returncode == -9 else "")
             )
         found: dict[str, Path] = {}
         stem = source.stem
