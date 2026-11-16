@@ -235,8 +235,8 @@ def _summarize_samples(samples: list[dict[str, Any]]) -> dict[str, Any]:
         "gpu_allocated_bytes_peak": gpu["peak"],
         "gpu_allocated_bytes_mean": gpu["mean"],
         "gpu_driver_bytes_peak": driver["peak"],
+        "gpu_driver_bytes_mean": driver["mean"],
         "gpu_device": samples[-1].get("gpu_device"),
-        "samples": samples,
     }
 
 
@@ -398,12 +398,7 @@ class TrackRecord:
             "error": self.error,
             "mutagen": self.mutagen,
             "jobs": self.jobs,
-            "resources": {
-                k: v
-                for k, v in self.resources.items()
-                if k != "samples"
-            },
-            "resource_samples": self.resources.get("samples") or [],
+            "resources": dict(self.resources),
         }
 
 
@@ -428,7 +423,9 @@ class _Sampler:
         if self._thread is not None:
             self._thread.join(timeout=2.0)
         self.samples.append(_resource_sample())
-        return _summarize_samples(self.samples)
+        summary = _summarize_samples(self.samples)
+        self.samples.clear()
+        return summary
 
 
 class RunLogger:
@@ -604,6 +601,7 @@ def execute_logged(
                 flush=True,
             )
     i = 0
+    group_n = 0
     for source, group in groups:
         if logger is None:
             _run_group(tool, group, worker, writes_index=i, n_write=n_write)
@@ -644,6 +642,17 @@ def execute_logged(
                         extra={"error": str(exc)},
                     )
                     print(f"fail {i}/{n_write} {job.source.name}: {exc}", flush=True)
+        group_n += 1
+        try:
+            from py.utils.meta import clear_source_meta_cache
+
+            clear_source_meta_cache(source)
+        except Exception:
+            pass
+        if group_n % 100 == 0:
+            import gc
+
+            gc.collect()
     return jobs
 
 
@@ -691,6 +700,12 @@ def run_cli(tool_id: str, args: argparse.Namespace, tool: Tool) -> int:
         except Exception as exc:
             print(f"run failed: {exc}", flush=True)
         finally:
+            try:
+                from py.utils.meta import clear_source_meta_cache
+
+                clear_source_meta_cache()
+            except Exception:
+                pass
             try:
                 logger.close()
             except Exception as exc:

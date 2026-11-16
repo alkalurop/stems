@@ -11,7 +11,7 @@ Each automation run writes three kinds of file, same `run_id` stem:
 | `{stamp}-{tool}-tracks.png` | Bar graph: wall time and seconds of work per minute of audio |
 | `{stamp}-{tool}-overview.png` | CPU / RSS / GPU bars plus pass/fail and vocals vs none |
 
-JSON `tracks[].resource_samples` is the matplotlib source. `summary.vocals.none` is mute mixes (Rekordbox pair dropped; original mix is the instrumental). `summary.no_audio` is a source with no duration/bytes.
+Charts read `tracks[].resources` peaks (`rss_bytes_peak`, etc.); raw per-sample series are not kept in JSON (large batches used to OOM). `summary.vocals.none` is mute mixes (Rekordbox pair dropped; original mix is the instrumental). `summary.no_audio` is a source with no duration/bytes.
 
 `.log` / `.json` / `.png` are gitignored (absolute paths on `ix`). Keep this README.
 

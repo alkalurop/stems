@@ -115,10 +115,32 @@ class SourceMeta:
         return f"{base} - {suffix}" if base else suffix
 
 
+_SOURCE_META_CACHE: dict[tuple[str, int], SourceMeta] = {}
+
+
+def clear_source_meta_cache(source: Path | None = None) -> None:
+    """Drop cached tag reads so long batches do not retain cover blobs."""
+    if source is None:
+        _SOURCE_META_CACHE.clear()
+        return
+    resolved = str(Path(source).resolve())
+    for key in [k for k in _SOURCE_META_CACHE if k[0] == resolved]:
+        del _SOURCE_META_CACHE[key]
+
+
 def read_source_meta(path: Path) -> SourceMeta:
     """Best-effort dump. Never raises."""
-    meta = SourceMeta()
     path = Path(path)
+    cache_key: tuple[str, int] | None = None
+    try:
+        st = path.stat()
+        cache_key = (str(path.resolve()), int(st.st_mtime_ns))
+        hit = _SOURCE_META_CACHE.get(cache_key)
+        if hit is not None:
+            return hit
+    except OSError:
+        cache_key = None
+    meta = SourceMeta()
     try:
         easy = MutagenFile(path, easy=True)
         if easy is not None and easy.tags is not None:
@@ -245,6 +267,8 @@ def read_source_meta(path: Path) -> SourceMeta:
                 meta.cover_mime = "image/png" if fmt == int(MP4Cover.FORMAT_PNG) else "image/jpeg"
         except Exception:
             pass
+    if cache_key is not None:
+        _SOURCE_META_CACHE[cache_key] = meta
     return meta
 
 

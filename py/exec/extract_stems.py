@@ -22,6 +22,30 @@ from py.utils.base import Job, Tool
 from py.utils.catalog import StemCatalog, read_tags
 from py.utils.ffmpeg import run_ffmpeg
 from py.utils.paths import STEMS_AUDIO, STEM_ROLES, container_basename, is_stem_container
+
+DOT_ROLE_OUT = {"acapella": "vocals", "vocals": "vocals"}
+
+
+def _role_filename(base: str, role: str, fmt: str, *, dot: bool) -> str:
+    out_role = DOT_ROLE_OUT.get(role, role)
+    if dot:
+        return f"{base}.{out_role}.{fmt}"
+    return f"{base} - {out_role}.{fmt}"
+
+
+def _vocals_already_beside(stem: Path, base: str) -> bool:
+    parent = stem.parent
+    for name in (
+        f"{base} - vocals.m4a",
+        f"{base} - vocals.mp3",
+        f"{base}.vocals.m4a",
+        f"{base} - acapella.m4a",
+        f"{base} - acappella.m4a",
+    ):
+        hit = parent / name
+        if hit.is_file() and hit.stat().st_size > 0:
+            return True
+    return False
 from py.utils.runlog import add_log_flags, run_cli
 
 
@@ -40,8 +64,10 @@ class StemExtractor(Tool):
         include_master: bool = False,
         inplace: bool = False,
         force: bool = False,
+        dot: bool = False,
     ) -> None:
         super().__init__(source, dest or STEMS_AUDIO, dry_run=dry_run, recursive=recursive)
+        self.dot = dot
         self.fmt = fmt.lstrip(".").lower()
         if self.fmt not in {"m4a", "wav"}:
             raise ValueError("fmt must be m4a or wav")
@@ -74,9 +100,23 @@ class StemExtractor(Tool):
         jobs: list[Job] = []
         for src in self.discover():
             artist, album, title = self._source_meta(src)
+            base = container_basename(src)
             for stream_id, role in self.roles.items():
+                if role in {"acapella", "vocals"} and _vocals_already_beside(src, base):
+                    jobs.append(
+                        Job(
+                            source=src,
+                            dest=src.parent / _role_filename(base, role, self.fmt, dot=self.dot),
+                            action="skip",
+                            reason="vocals already beside mix",
+                            role=role,
+                            stream_id=stream_id,
+                            extra={"artist": artist, "album": album, "title": title},
+                        )
+                    )
+                    continue
                 if self.inplace:
-                    dest = src.parent / f"{container_basename(src)} - {role}.{self.fmt}"
+                    dest = src.parent / _role_filename(base, role, self.fmt, dot=self.dot)
                     skip, reason = (dest.exists() and not self.force), (
                         "already next to source" if dest.exists() else ""
                     )
@@ -197,6 +237,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--acapella", "--vocals", action="store_true", dest="acapella")
     parser.add_argument("--master", action="store_true", help="Also extract stream 0")
     parser.add_argument("--inplace", action="store_true", help="Write next to the container")
+    parser.add_argument(
+        "--dot",
+        action="store_true",
+        help="Inplace names like Title.drums.m4a (Traktor remix cells). Default is Title - drums.m4a",
+    )
     parser.add_argument("--no-recursive", action="store_true")
     parser.add_argument("--force", action="store_true", help="Overwrite existing dest")
     parser.add_argument("--execute", action="store_true")
@@ -223,6 +268,7 @@ def main(argv: list[str] | None = None) -> int:
         include_master=args.master,
         inplace=args.inplace,
         force=args.force,
+        dot=args.dot,
     )
     return run_cli("py.exec.extract_stems", args, tool)
 
